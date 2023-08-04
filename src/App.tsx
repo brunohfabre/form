@@ -1,16 +1,45 @@
-import { useRef } from 'react'
+import { ComponentProps, useRef } from 'react'
+
+interface InputProps extends ComponentProps<'input'> {
+  name: string
+}
+
+function Input({ name, ...props }: InputProps) {
+  const ref = useRef()
+
+  return (
+    <input
+      ref={ref}
+      name={name}
+      className="h-10 bg-red-200 px-3"
+      onChange={() => {
+        if (ref.current) {
+          ref.current.isDirty = true
+        }
+      }}
+      {...props}
+    />
+  )
+}
 
 export function App() {
+  const testInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef(null)
 
   function handleSubmit(event: any) {
     event.preventDefault()
 
-    console.log(
-      Array.from(event.target.childNodes)
-        .filter((item) => !!item.name)
-        .reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}),
-    )
+    const data = Array.from(event.target.childNodes)
+      .filter((item) => !!item.name)
+      .reduce(
+        (acc, item) => ({
+          ...acc,
+          [item.name]: item.isDirty ? item.value : undefined,
+        }),
+        {},
+      )
+
+    console.log(data)
   }
 
   function reset() {
@@ -18,6 +47,7 @@ export function App() {
       .filter((item) => !!item.name)
       .forEach((item) => {
         item.value = ''
+        item.isDirty = false
       })
   }
 
@@ -59,50 +89,62 @@ export function App() {
         onSubmit={handleSubmit}
         className="flex flex-col w-80 gap-4"
       >
-        <input
-          name="name"
-          type="text"
-          placeholder="Name"
-          className="h-10 bg-red-200 px-3"
-        />
-        <input
-          name="email"
-          type="text"
-          placeholder="Email"
-          className="h-10 bg-red-200 px-3"
-        />
-        <input
-          name="password"
-          type="text"
-          placeholder="Password"
-          className="h-10 bg-red-200 px-3"
-        />
+        <Input name="name" placeholder="Name" />
+        <Input name="email" placeholder="Email" />
+        <Input name="password" placeholder="Password" />
 
         <button type="submit" className="h-10 bg-emerald-200 px-4">
           submit
         </button>
       </form>
+
       <div className="flex gap-2">
         <button
           type="button"
           className="h-10 bg-red-500 text-white px-4"
-          onClick={focus}
+          onClick={() => console.log('get-field-value')}
         >
-          focus
+          get field value
         </button>
+
         <button
           type="button"
           className="h-10 bg-red-500 text-white px-4"
-          onClick={setValue}
+          onClick={() => console.log('set-field-value')}
         >
-          set value
+          set field value
         </button>
+
         <button
           type="button"
           className="h-10 bg-red-500 text-white px-4"
-          onClick={clearField}
+          onClick={() => console.log('clear-field')}
         >
           clear field
+        </button>
+
+        <button
+          type="button"
+          className="h-10 bg-red-500 text-white px-4"
+          onClick={() => console.log('focus-field')}
+        >
+          focus field
+        </button>
+
+        <button
+          type="button"
+          className="h-10 bg-red-500 text-white px-4"
+          onClick={() => console.log('get-data')}
+        >
+          get data
+        </button>
+
+        <button
+          type="button"
+          className="h-10 bg-red-500 text-white px-4"
+          onClick={() => console.log('set-data')}
+        >
+          set data
         </button>
 
         <button
