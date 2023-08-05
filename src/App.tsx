@@ -1,97 +1,35 @@
-import { ComponentProps, useRef } from 'react'
+import { z } from 'zod'
 
-interface InputProps extends ComponentProps<'input'> {
-  name: string
-}
+import { useForm } from './components/Form'
+import { TextInput } from './components/Form/components/TextInput'
 
-function Input({ name, ...props }: InputProps) {
-  const ref = useRef()
+const testFormSchema = z.object({
+  name: z.string().nonempty(),
+  email: z.string().email().nonempty(),
+  password: z.string().min(6).nonempty(),
+})
 
-  return (
-    <input
-      ref={ref}
-      name={name}
-      className="h-10 bg-red-200 px-3"
-      onChange={() => {
-        if (ref.current) {
-          ref.current.isDirty = true
-        }
-      }}
-      {...props}
-    />
-  )
-}
+type TestFormData = z.infer<typeof testFormSchema>
 
 export function App() {
-  const testInputRef = useRef<HTMLInputElement>(null)
-  const formRef = useRef(null)
+  const testForm = useForm<TestFormData>({
+    resolver: testFormSchema,
+  })
 
-  function handleSubmit(event: any) {
-    event.preventDefault()
-
-    const data = Array.from(event.target.childNodes)
-      .filter((item) => !!item.name)
-      .reduce(
-        (acc, item) => ({
-          ...acc,
-          [item.name]: item.isDirty ? item.value : undefined,
-        }),
-        {},
-      )
-
+  function test(data: TestFormData) {
     console.log(data)
-  }
-
-  function reset() {
-    Array.from(formRef.current.childNodes)
-      .filter((item) => !!item.name)
-      .forEach((item) => {
-        item.value = ''
-        item.isDirty = false
-      })
-  }
-
-  function setValue() {
-    const fieldName = 'email'
-    const value = 'vrau'
-
-    const field = Array.from(formRef.current.childNodes).find(
-      (item) => item.name === fieldName,
-    )
-
-    field.value = value
-  }
-
-  function clearField() {
-    const fieldName = 'password'
-
-    const field = Array.from(formRef.current.childNodes).find(
-      (item) => item.name === fieldName,
-    )
-
-    field.value = ''
-  }
-
-  function focus() {
-    const fieldName = 'email'
-
-    const field = Array.from(formRef.current.childNodes).find(
-      (item) => item.name === fieldName,
-    )
-
-    field.focus()
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <form
-        ref={formRef}
-        onSubmit={handleSubmit}
+        ref={testForm.formRef}
+        onSubmit={testForm.handleSubmit(test)}
         className="flex flex-col w-80 gap-4"
       >
-        <Input name="name" placeholder="Name" />
-        <Input name="email" placeholder="Email" />
-        <Input name="password" placeholder="Password" />
+        <TextInput name="name" placeholder="Name" />
+        <TextInput name="email" placeholder="Email" />
+        <TextInput name="password" placeholder="Password" />
 
         <button type="submit" className="h-10 bg-emerald-200 px-4">
           submit
@@ -101,56 +39,60 @@ export function App() {
       <div className="flex gap-2">
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('get-field-value')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() => console.log(testForm.getFieldValue('email'))}
         >
           get field value
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('set-field-value')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() =>
+            testForm.setFieldValue('email', 'bruno.hfabre@gmail.com')
+          }
         >
           set field value
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('clear-field')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() => testForm.clearField('email')}
         >
           clear field
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('focus-field')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() => testForm.focus('email')}
         >
-          focus field
+          focus
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('get-data')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() => console.log(testForm.getData())}
         >
           get data
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={() => console.log('set-data')}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() =>
+            testForm.setData({ name: 'John Doe', password: 'abcd1234' })
+          }
         >
           set data
         </button>
 
         <button
           type="button"
-          className="h-10 bg-red-500 text-white px-4"
-          onClick={reset}
+          className="h-10 bg-blue-500 text-white px-4"
+          onClick={() => testForm.reset()}
         >
           reset
         </button>
