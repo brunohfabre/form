@@ -1,12 +1,17 @@
 import { z } from 'zod'
 
 import { useForm } from './components/Form'
+import { Field } from './components/Form/components/Field'
+import { Label } from './components/Form/components/Label'
+import { MaskInput } from './components/Form/components/MaskInput'
+import { Message } from './components/Form/components/Message'
+import { NumberInput } from './components/Form/components/Numberinput'
 import { TextInput } from './components/Form/components/TextInput'
 
 const testFormSchema = z.object({
   name: z.string().nonempty(),
-  email: z.string().email().nonempty(),
-  password: z.string().min(6).nonempty(),
+  age: z.number(),
+  cep: z.string().nonempty(),
 })
 
 type TestFormData = z.infer<typeof testFormSchema>
@@ -27,9 +32,23 @@ export function App() {
         onSubmit={testForm.handleSubmit(test)}
         className="flex flex-col w-80 gap-4"
       >
-        <TextInput name="name" placeholder="Name" />
-        <TextInput name="email" placeholder="Email" />
-        <TextInput name="password" placeholder="Password" />
+        <Field name="name">
+          <Label name="name">Name</Label>
+          <TextInput name="name" placeholder="Name" />
+          <Message name="name" />
+        </Field>
+
+        <Field name="age">
+          <Label name="age">Age</Label>
+          <NumberInput name="age" placeholder="Age" />
+          <Message name="age" />
+        </Field>
+
+        <Field name="cep">
+          <Label name="cep">Cep</Label>
+          <MaskInput name="cep" placeholder="Cep" mask="99999-999" />
+          <Message name="cep" />
+        </Field>
 
         <button type="submit" className="h-10 bg-emerald-200 px-4">
           submit

@@ -1,6 +1,6 @@
 import { ChangeEvent, ComponentProps, useRef } from 'react'
 
-interface TextInputProps extends ComponentProps<'input'> {
+interface NumberInputProps extends ComponentProps<'input'> {
   name: string
 }
 
@@ -8,12 +8,14 @@ interface InputRef extends HTMLInputElement {
   isDirty: boolean
 }
 
-export function TextInput(props: TextInputProps) {
+export function NumberInput(props: NumberInputProps) {
   const ref = useRef<InputRef>(null)
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (ref.current) {
       ref.current.isDirty = true
+
+      ref.current.value = event.target.value.replace(/[^\d]+/g, '')
     }
 
     if (props.onChange) {
@@ -26,7 +28,7 @@ export function TextInput(props: TextInputProps) {
       ref={ref}
       type="text"
       data-is-form-field
-      data-type="string"
+      data-type="number"
       onChange={handleChange}
       {...props}
     />

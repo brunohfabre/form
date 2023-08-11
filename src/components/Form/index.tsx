@@ -4,6 +4,51 @@ import { z } from 'zod'
 
 import { FormHandles } from '../../types'
 
+function getChildNodes(
+  ref: any,
+  add: (ref: RefObject<HTMLInputElement>) => void,
+) {
+  add(ref)
+
+  if (ref.childNodes) {
+    Array.from(ref.childNodes).forEach((item) => {
+      getChildNodes(item, add)
+    })
+  }
+}
+
+function getMessages(ref: any) {
+  const nodes: any[] = []
+
+  getChildNodes(ref, (node) => nodes.push(node))
+
+  return nodes.filter(
+    (item) => item.dataset && 'isFieldMessage' in item.dataset,
+  )
+}
+
+function getFields(ref: any) {
+  const nodes: any[] = []
+
+  getChildNodes(ref, (node) => nodes.push(node))
+
+  return nodes.filter((item) => item.dataset && 'isFormField' in item.dataset)
+}
+
+function processValue(ref: any) {
+  const { type } = ref.dataset
+
+  if (type === 'string') {
+    return ref.value
+  }
+
+  if (type === 'number') {
+    return Number(ref.value)
+  }
+
+  return undefined
+}
+
 interface UseFormProps {
   resolver: z.ZodSchema
 }
@@ -22,6 +67,10 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       event.preventDefault()
 
       try {
+        getMessages(formRef.current).forEach((item) => {
+          item.innerText = ''
+        })
+
         const formData = getData()
 
         if (props?.resolver) {
@@ -35,7 +84,15 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
         handle(formData ?? ({} as T))
       } catch (error) {
         if (error instanceof z.ZodError) {
-          console.log(JSON.stringify(error, null, 2))
+          const errors: Record<string, string> = {}
+
+          error.issues.forEach((issue) => {
+            errors[issue.path[0]] = issue.message
+          })
+
+          getMessages(formRef.current).forEach((item) => {
+            item.innerText = errors[item.dataset.name] ?? ''
+          })
         }
       }
     }
@@ -46,12 +103,9 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    const findField = Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .find((field: any) => field.name === fieldName) as any
+    const findField = getFields(formRef.current).find(
+      (field: any) => field.name === fieldName,
+    ) as any
 
     return findField.value
   }
@@ -61,12 +115,9 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    const findField = Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .find((item: any) => item.name === fieldName) as any
+    const findField = getFields(formRef.current).find(
+      (item: any) => item.name === fieldName,
+    ) as any
 
     if (findField) {
       findField.value = value
@@ -79,12 +130,9 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    const findField = Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .find((field: any) => field.name === fieldName) as any
+    const findField = getFields(formRef.current).find(
+      (field: any) => field.name === fieldName,
+    ) as any
 
     if (findField) {
       findField.value = ''
@@ -96,12 +144,9 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    const findField = Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .find((field: any) => field.name === fieldName) as any
+    const findField = getFields(formRef.current).find(
+      (field: any) => field.name === fieldName,
+    ) as any
 
     if (findField) {
       findField.focus()
@@ -113,18 +158,13 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    const data = Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .reduce(
-        (acc: Record<string, any>, field: any) => ({
-          ...acc,
-          [field.name]: field.isDirty ? field.value : undefined,
-        }),
-        {},
-      ) as T
+    const data = getFields(formRef.current).reduce(
+      (acc: Record<string, any>, field: any) => ({
+        ...acc,
+        [field.name]: field.isDirty ? processValue(field) : undefined,
+      }),
+      {},
+    ) as T
 
     return data
   }
@@ -134,17 +174,12 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .forEach((item: any) => {
-        if (item.name in data) {
-          item.value = data[item.name]
-          item.isDirty = true
-        }
-      })
+    getFields(formRef.current).forEach((item: any) => {
+      if (item.name in data) {
+        item.value = data[item.name]
+        item.isDirty = true
+      }
+    })
   }
 
   function reset() {
@@ -152,15 +187,14 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    Array.from(formRef.current?.childNodes)
-      .filter(
-        (item: any) =>
-          'isFormField' in item.dataset && item.dataset.isFormField === 'true',
-      )
-      .forEach((field: any) => {
-        field.isDirty = false
-        field.value = ''
-      })
+    getFields(formRef.current).forEach((field: any) => {
+      field.isDirty = false
+      field.value = ''
+    })
+
+    getMessages(formRef.current).forEach((item) => {
+      item.innerText = ''
+    })
   }
 
   return {

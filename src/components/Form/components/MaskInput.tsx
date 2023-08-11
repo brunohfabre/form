@@ -1,19 +1,24 @@
 import { ChangeEvent, ComponentProps, useRef } from 'react'
 
-interface TextInputProps extends ComponentProps<'input'> {
+import { toPattern } from 'vanilla-masker'
+
+interface MaskInputProps extends ComponentProps<'input'> {
   name: string
+  mask: string
 }
 
 interface InputRef extends HTMLInputElement {
   isDirty: boolean
 }
 
-export function TextInput(props: TextInputProps) {
+export function MaskInput(props: MaskInputProps) {
   const ref = useRef<InputRef>(null)
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (ref.current) {
       ref.current.isDirty = true
+
+      ref.current.value = toPattern(event.target.value, props.mask)
     }
 
     if (props.onChange) {
