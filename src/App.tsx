@@ -5,7 +5,8 @@ import { Field } from './components/Form/components/Field'
 import { Label } from './components/Form/components/Label'
 import { MaskInput } from './components/Form/components/MaskInput'
 import { Message } from './components/Form/components/Message'
-import { NumberInput } from './components/Form/components/Numberinput'
+import { NumberInput } from './components/Form/components/NumberInput'
+import { SelectInput } from './components/Form/components/SelectInput'
 import { TextInput } from './components/Form/components/TextInput'
 
 const testFormSchema = z.object({
@@ -48,6 +49,29 @@ export function App() {
           <Label name="cep">Cep</Label>
           <MaskInput name="cep" placeholder="Cep" mask="99999-999" />
           <Message name="cep" />
+        </Field>
+
+        <Field name="state">
+          <Label name="state">State</Label>
+          <SelectInput
+            name="state"
+            placeholder="state"
+            options={[
+              {
+                value: 'value-1',
+                label: 'Option 1',
+              },
+              {
+                value: 'value-2',
+                label: 'Option 2',
+              },
+              {
+                value: 'value-3',
+                label: 'Option 3',
+              },
+            ]}
+          />
+          <Message name="State" />
         </Field>
 
         <button type="submit" className="h-10 bg-emerald-200 px-4">
