@@ -1,39 +1,85 @@
-import { ChangeEvent, ComponentProps, useRef } from 'react'
+import { ChangeEvent, useRef, useEffect, useCallback } from 'react'
 
 import { toPattern } from 'vanilla-masker'
 
-interface MaskInputProps extends ComponentProps<'input'> {
+import { InputRefBase } from './types'
+
+interface MaskInputProps {
   name: string
   mask: string
+  placeholder?: string
+  onChange?: (value: string) => void
 }
 
-interface InputRef extends HTMLInputElement {
-  isDirty: boolean
-}
+type InputRef = HTMLInputElement & InputRefBase
 
-export function MaskInput(props: MaskInputProps) {
+export function MaskInput({
+  name,
+  mask,
+  placeholder,
+  onChange,
+}: MaskInputProps) {
   const ref = useRef<InputRef>(null)
 
+  function getFieldValue() {
+    if (!ref.current) {
+      return
+    }
+
+    return ref.current.value
+  }
+
+  const setFieldValue = useCallback(
+    (value: string) => {
+      if (!ref.current) {
+        return
+      }
+
+      ref.current.isDirty = true
+      ref.current.value = toPattern(value, mask)
+    },
+    [mask],
+  )
+
+  function resetField() {
+    if (!ref.current) {
+      return
+    }
+
+    ref.current.isDirty = false
+    ref.current.value = ''
+  }
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.getFieldValue = getFieldValue
+      ref.current.setFieldValue = setFieldValue
+      ref.current.resetField = resetField
+    }
+  }, [setFieldValue])
+
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const value = toPattern(event.target.value, mask)
+
     if (ref.current) {
       ref.current.isDirty = true
 
-      ref.current.value = toPattern(event.target.value, props.mask)
+      ref.current.value = value
     }
 
-    if (props.onChange) {
-      props.onChange(event)
+    if (onChange) {
+      onChange(value)
     }
   }
 
   return (
     <input
       ref={ref}
+      name={name}
+      placeholder={placeholder}
+      onChange={handleChange}
       type="text"
       data-is-form-field
-      data-type="string"
-      onChange={handleChange}
-      {...props}
     />
   )
 }

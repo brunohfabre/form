@@ -35,20 +35,6 @@ function getFields(ref: any) {
   return nodes.filter((item) => item.dataset && 'isFormField' in item.dataset)
 }
 
-function processValue(ref: any) {
-  const { type } = ref.dataset
-
-  if (type === 'string') {
-    return ref.value
-  }
-
-  if (type === 'number') {
-    return Number(ref.value)
-  }
-
-  return undefined
-}
-
 interface UseFormProps {
   resolver: z.ZodSchema
 }
@@ -107,7 +93,7 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       (field: any) => field.name === fieldName,
     ) as any
 
-    return findField.value
+    return findField.getFieldValue()
   }
 
   function setFieldValue(fieldName: string, value: any) {
@@ -120,8 +106,7 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
     ) as any
 
     if (findField) {
-      findField.value = value
-      findField.isDirty = true
+      findField.setFieldValue(value)
     }
   }
 
@@ -161,7 +146,7 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
     const data = getFields(formRef.current).reduce(
       (acc: Record<string, any>, field: any) => ({
         ...acc,
-        [field.name]: field.isDirty ? processValue(field) : undefined,
+        [field.name]: field.isDirty ? field.getFieldValue() : undefined,
       }),
       {},
     ) as T
@@ -174,10 +159,9 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    getFields(formRef.current).forEach((item: any) => {
-      if (item.name in data) {
-        item.value = data[item.name]
-        item.isDirty = true
+    getFields(formRef.current).forEach((field: any) => {
+      if (field.name in data) {
+        field.setFieldValue(data[field.name])
       }
     })
   }
@@ -187,10 +171,7 @@ export function useForm<T>(props?: UseFormProps): UseFormResponse<T> {
       return
     }
 
-    getFields(formRef.current).forEach((field: any) => {
-      field.isDirty = false
-      field.value = ''
-    })
+    getFields(formRef.current).forEach((field: any) => field.resetField())
 
     getMessages(formRef.current).forEach((item) => {
       item.innerText = ''
