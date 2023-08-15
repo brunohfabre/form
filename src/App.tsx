@@ -1,13 +1,17 @@
+import { useState } from 'react'
+
 import { z } from 'zod'
 
-import { useForm } from './components/Form'
-import { Field } from './components/Form/components/Field'
-import { Label } from './components/Form/components/Label'
-import { MaskInput } from './components/Form/components/MaskInput'
-import { Message } from './components/Form/components/Message'
-import { NumberInput } from './components/Form/components/NumberInput'
-import { Select } from './components/Form/components/Select'
-import { TextInput } from './components/Form/components/TextInput'
+import {
+  useForm,
+  Field,
+  Label,
+  Message,
+  TextInput,
+  MaskInput,
+  NumberInput,
+  SelectInput,
+} from './components/Form'
 
 const testFormSchema = z.object({
   name: z.string().nonempty(),
@@ -22,6 +26,8 @@ export function App() {
   const testForm = useForm<TestFormData>({
     resolver: testFormSchema,
   })
+
+  const [names, setNames] = useState<string[]>([])
 
   function test(data: TestFormData) {
     console.log(data)
@@ -47,17 +53,51 @@ export function App() {
         }}
       >
         <div>
+          {names.map((item, index) => (
+            <div key={item} style={{ display: 'flex' }}>
+              <Field name={`names.${index}.name`}>
+                <Label>Name</Label>
+                <TextInput placeholder="Name" />
+                <Message />
+              </Field>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setNames((prevState) =>
+                    prevState.filter((_, itemIndex) => itemIndex !== index),
+                  )
+                }
+              >
+                X
+              </button>
+            </div>
+          ))}
+          <div>
+            <button
+              type="button"
+              onClick={() =>
+                setNames((prevState) => [...prevState, crypto.randomUUID()])
+              }
+            >
+              add
+            </button>
+          </div>
+        </div>
+        <div>
           <Field name="name">
-            <Label name="name">Name</Label>
-            <TextInput name="name" placeholder="Name" />
-            <Message name="name" />
+            <Label>Name</Label>
+            <TextInput placeholder="Name" />
+            <Message />
           </Field>
 
           <div>
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => console.log(testForm.getFieldValue('name'))}
+              onClick={() =>
+                console.log(testForm.getFieldValue('this.is.first.name'))
+              }
             >
               get field value
             </button>
@@ -65,7 +105,9 @@ export function App() {
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.setFieldValue('name', 'John Doe')}
+              onClick={() =>
+                testForm.setFieldValue('this.is.first.name', 'John Doe')
+              }
             >
               set field value
             </button>
@@ -73,15 +115,15 @@ export function App() {
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.clearField('name')}
+              onClick={() => testForm.resetField('this.is.first.name')}
             >
-              clear field
+              reset field
             </button>
 
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.focus('name')}
+              onClick={() => testForm.focus('this.is.first.name')}
             >
               focus
             </button>
@@ -90,9 +132,9 @@ export function App() {
 
         <div>
           <Field name="age">
-            <Label name="age">Age</Label>
-            <NumberInput name="age" placeholder="Age" />
-            <Message name="age" />
+            <Label>Age</Label>
+            <NumberInput placeholder="Age" />
+            <Message />
           </Field>
           <div>
             <button
@@ -114,9 +156,9 @@ export function App() {
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.clearField('age')}
+              onClick={() => testForm.resetField('age')}
             >
-              clear field
+              reset field
             </button>
 
             <button
@@ -131,9 +173,9 @@ export function App() {
 
         <div>
           <Field name="cep">
-            <Label name="cep">Cep</Label>
-            <MaskInput name="cep" placeholder="Cep" mask="99999-999" />
-            <Message name="cep" />
+            <Label>Cep</Label>
+            <MaskInput placeholder="Cep" mask="99999-999" />
+            <Message />
           </Field>
           <div>
             <button
@@ -155,9 +197,9 @@ export function App() {
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.clearField('cep')}
+              onClick={() => testForm.resetField('cep')}
             >
-              clear field
+              reset field
             </button>
 
             <button
@@ -172,10 +214,9 @@ export function App() {
 
         <div>
           <Field name="state">
-            <Label name="state">State</Label>
+            <Label>State</Label>
 
-            <Select
-              name="state"
+            <SelectInput
               placeholder="state"
               options={[
                 {
@@ -192,7 +233,7 @@ export function App() {
                 },
               ]}
             />
-            <Message name="state" />
+            <Message />
           </Field>
           <div>
             <button
@@ -214,9 +255,9 @@ export function App() {
             <button
               type="button"
               className="h-10 bg-blue-500 text-white px-4"
-              onClick={() => testForm.clearField('state')}
+              onClick={() => testForm.resetField('state')}
             >
-              clear field
+              reset field
             </button>
 
             <button

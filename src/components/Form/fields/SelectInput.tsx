@@ -10,8 +10,8 @@ type Option = {
   label: string
 }
 
-interface SelectProps {
-  name: string
+interface SelectInputProps {
+  name?: string
   options: Option[]
   placeholder?: string
   onChange?: (option: Option) => void
@@ -25,7 +25,12 @@ interface InputRef extends HTMLButtonElement {
   resetField: () => void
 }
 
-export function Select({ name, options, placeholder, onChange }: SelectProps) {
+export function SelectInput({
+  name,
+  options,
+  placeholder,
+  onChange,
+}: SelectInputProps) {
   const ref = useRef<InputRef>(null)
 
   const [contentWidth, setContentWidth] = useState(0)
@@ -92,6 +97,10 @@ export function Select({ name, options, placeholder, onChange }: SelectProps) {
     if (onChange) {
       onChange(option)
     }
+  }
+
+  if (!name) {
+    throw new Error('Does not have the name property.')
   }
 
   return (

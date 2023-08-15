@@ -2,10 +2,10 @@ import { ChangeEvent, useRef, useEffect, useCallback } from 'react'
 
 import { toPattern } from 'vanilla-masker'
 
-import { InputRefBase } from './types'
+import { InputRefBase } from '../types'
 
 interface MaskInputProps {
-  name: string
+  name?: string
   mask: string
   placeholder?: string
   onChange?: (value: string) => void
@@ -70,6 +70,10 @@ export function MaskInput({
     if (onChange) {
       onChange(value)
     }
+  }
+
+  if (!name) {
+    throw new Error('Does not have the name property.')
   }
 
   return (

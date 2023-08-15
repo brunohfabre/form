@@ -1,9 +1,9 @@
 import { ChangeEvent, useRef, useEffect } from 'react'
 
-import { InputRefBase } from './types'
+import { InputRefBase } from '../types'
 
 interface NumberInputProps {
-  name: string
+  name?: string
   placeholder?: string
   onChange?: (value: number) => void
 
@@ -78,6 +78,10 @@ export function NumberInput({
     if (onChange) {
       onChange(Number(value))
     }
+  }
+
+  if (!name) {
+    throw new Error('Does not have the name property.')
   }
 
   return (

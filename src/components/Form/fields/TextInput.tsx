@@ -1,7 +1,7 @@
 import { ChangeEvent, useRef, useEffect } from 'react'
 
 interface TextInputProps {
-  name: string
+  name?: string
   placeholder?: string
   onChange?: (value: string) => void
 }
@@ -61,6 +61,10 @@ export function TextInput({ name, placeholder, onChange }: TextInputProps) {
     if (onChange) {
       onChange(value)
     }
+  }
+
+  if (!name) {
+    throw new Error('Does not have the name property.')
   }
 
   return (
